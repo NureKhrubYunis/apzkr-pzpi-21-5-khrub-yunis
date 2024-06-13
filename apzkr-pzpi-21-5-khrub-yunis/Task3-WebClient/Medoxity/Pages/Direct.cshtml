@@ -1,0 +1,106 @@
+﻿@page
+@model Medoxity.Pages.DirectModel
+@{
+    Layout = "_Layout";
+    ViewData["Title"] = "Direct Messages";
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>@ViewData["Title"]</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <style>
+        body {
+            background-color: #f4f4f9;
+            color: #333;
+            font-family: 'Arial', sans-serif;
+        }
+
+        .container {
+            margin-top: 50px;
+            max-width: 800px;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .list-group-item {
+            background-color: #fff;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            padding: 15px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+            .list-group-item:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+            }
+
+        a {
+            text-decoration: none;
+            color: #007bff;
+        }
+
+            a:hover {
+                text-decoration: underline;
+            }
+
+        .timestamp {
+            color: #888;
+            font-size: 0.9em;
+        }
+
+        .message-preview {
+            color: #555;
+            margin-top: 5px;
+        }
+    </style>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>Direct Messages</h1>
+        <div id="directList">
+            <p>Loading...</p>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function () {
+            $.ajax({
+                url: '/api/Messages/users-with-messages',
+                method: 'GET',
+                contentType: 'application/json',
+                success: function (data) {
+                    if (data.length === 0) {
+                        $('#directList').html('<p>No direct messages available.</p>');
+                    } else {
+                        var directHtml = '<ul class="list-group">';
+                        data.forEach(function (item) {
+                            directHtml += `
+                                        <li class="list-group-item">
+                                            <a href="/Messages?username=${item.user}">
+                                                <strong>${item.user}</strong>
+                                            </a>
+                                            <p class="message-preview">${item.lastMessage}</p>
+                                            <small class="timestamp">${new Date(item.sentDate).toLocaleString()}</small>
+                                        </li>`;
+                        });
+                        directHtml += '</ul>';
+                        $('#directList').html(directHtml);
+                    }
+                },
+                error: function () {
+                    $('#directList').html('<p>Error loading direct messages.</p>');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

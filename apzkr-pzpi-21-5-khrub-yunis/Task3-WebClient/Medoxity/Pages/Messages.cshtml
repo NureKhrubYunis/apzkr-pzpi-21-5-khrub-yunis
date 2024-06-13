@@ -1,0 +1,93 @@
+﻿@page
+@model Medoxity.Pages.MessagesModel
+@{
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>@ViewData["Title"]</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <h1>Messages</h1>
+    <div id="messageList">
+        <p>Loading...</p>
+    </div>
+    <form id="sendMessageForm">
+        <div class="form-group">
+            <label for="messageText">Message:</label>
+            <textarea class="form-control" id="messageText" rows="3" required></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary">Send</button>
+    </form>
+
+    <script>
+        $(document).ready(function () {
+            var urlParams = new URLSearchParams(window.location.search);
+            var receiverUsername = urlParams.get('username');
+
+            if (receiverUsername) {
+                $.ajax({
+                    url: '/api/Messages/messages/' + receiverUsername,
+                    method: 'GET',
+                    contentType: 'application/json',
+                    success: function (messages) {
+                        if (messages.length === 0) {
+                            $('#messageList').html('<p>No messages found.</p>');
+                        } else {
+                            var messageHtml = '<ul class="list-group">';
+                            messages.forEach(function (message) {
+                                messageHtml += `
+                                            <li class="list-group-item">
+                                                <p><strong>${message.senderUsername}:</strong> ${message.text}</p>
+                                                <small>${new Date(message.sentDate).toLocaleString()}</small>
+                                            </li>`;
+                            });
+                            messageHtml += '</ul>';
+                            $('#messageList').html(messageHtml);
+                        }
+                    },
+                    error: function () {
+                        $('#messageList').html('<p>Error loading messages.</p>');
+                    }
+                });
+
+                $('#sendMessageForm').submit(function (event) {
+                    event.preventDefault();
+                    var messageText = $('#messageText').val();
+
+                    $.ajax({
+                        url: '/api/messages/message',
+                        method: 'POST',
+                        contentType: 'application/json',
+                        data: JSON.stringify({ receiverUsername: receiverUsername, text: messageText }),
+                        success: function (response) {
+                            alert(response.message);
+                            $('#messageText').val(''); // Clear the textarea after sending the message
+                            // Append the new message to the message list without reloading
+                            var newMessageHtml = `
+                                        <li class="list-group-item">
+                                            <p><strong>You:</strong> ${messageText}</p>
+                                            <small>${new Date().toLocaleString()}</small>
+                                        </li>`;
+                            $('#messageList ul').append(newMessageHtml);
+                        },
+                        error: function (xhr) {
+                            if (xhr.responseJSON && xhr.responseJSON.message) {
+                                alert('Error: ' + xhr.responseJSON.message);
+                            } else {
+                                alert('Error sending message.');
+                            }
+                        }
+                    });
+                });
+            } else {
+                $('#messageList').html('<p>Invalid user.</p>');
+            }
+        });
+    </script>
+</body>
+</html>

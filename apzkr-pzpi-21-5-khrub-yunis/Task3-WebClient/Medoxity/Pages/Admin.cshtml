@@ -1,0 +1,210 @@
+﻿@page
+@model Medoxity.Pages.AdminModel
+@{
+    Layout = "_Layout";
+    ViewData["Title"] = "Admin Panel";
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>@ViewData["Title"]</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <style>
+        body {
+            background-color: #f4f4f9;
+            color: #333;
+            font-family: 'Arial', sans-serif;
+        }
+
+        .container {
+            margin-top: 30px;
+        }
+
+        .table-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            background: linear-gradient(135deg, #e0e0e0, #ffffff);
+        }
+
+        h1, h2 {
+            color: #333;
+        }
+
+        .table-responsive {
+            margin-top: 20px;
+        }
+
+        .table {
+            width: 100%;
+            margin-bottom: 1rem;
+            color: #212529;
+        }
+
+            .table th,
+            .table td {
+                padding: 0.75rem;
+                vertical-align: top;
+                border-top: 1px solid #dee2e6;
+            }
+
+            .table thead th {
+                vertical-align: bottom;
+                border-bottom: 2px solid #dee2e6;
+            }
+
+            .table tbody + tbody {
+                border-top: 2px solid #dee2e6;
+            }
+
+        .table-hover tbody tr:hover {
+            color: #212529;
+            background-color: rgba(0, 0, 0, 0.075);
+        }
+
+        .btn-danger {
+            background-color: #dc3545;
+            border: none;
+        }
+
+            .btn-danger:hover {
+                background-color: #c82333;
+            }
+    </style>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1 class="my-4 text-center">@ViewData["Title"]</h1>
+
+        <div class="table-section">
+            <h2>Drugs</h2>
+            <div id="drugsTable" class="table-responsive">
+                <p>Loading...</p>
+            </div>
+        </div>
+
+        <div class="table-section">
+            <h2>Comments</h2>
+            <div id="commentsTable" class="table-responsive">
+                <p>Loading...</p>
+            </div>
+        </div>
+
+        <div class="table-section">
+            <h2>Documents</h2>
+            <div id="documentsTable" class="table-responsive">
+                <p>Loading...</p>
+            </div>
+        </div>
+
+        <div class="table-section">
+            <h2>Ratings</h2>
+            <div id="ratingsTable" class="table-responsive">
+                <p>Loading...</p>
+            </div>
+        </div>
+
+        <div class="table-section">
+            <h2>Users</h2>
+            <div id="usersTable" class="table-responsive">
+                <p>Loading...</p>
+            </div>
+        </div>
+
+        <div class="table-section">
+            <h2>Messages</h2>
+            <div id="messagesTable" class="table-responsive">
+                <p>Loading...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function () {
+            function loadTable(url, tableId, isRatingOrComment = false, isComment = false) {
+                $.ajax({
+                    url: url,
+                    method: 'GET',
+                    contentType: 'application/json',
+                    success: function (data) {
+                        if (data.length === 0) {
+                            $('#' + tableId).html('<p>No data available.</p>');
+                        } else {
+                            var tableHtml = '<table class="table table-hover"><thead><tr>';
+                            Object.keys(data[0]).forEach(function (key) {
+                                tableHtml += '<th>' + key + '</th>';
+                            });
+                            if (isRatingOrComment) {
+                                tableHtml += '<th>Action</th>';
+                            }
+                            tableHtml += '</tr></thead><tbody>';
+                            data.forEach(function (item) {
+                                tableHtml += '<tr>';
+                                Object.values(item).forEach(function (value) {
+                                    tableHtml += '<td>' + value + '</td>';
+                                });
+                                if (isRatingOrComment) {
+                                    tableHtml += `
+                                                        <td>
+                                                            <button class="btn btn-danger btn-sm delete-${isComment ? 'comment' : 'rating'}" data-id="${isComment ? item.commentID : item.ratingID}">Delete</button>
+                                                        </td>
+                                                    `;
+                                }
+                                tableHtml += '</tr>';
+                            });
+                            tableHtml += '</tbody></table>';
+                            $('#' + tableId).html(tableHtml);
+                        }
+                    },
+                    error: function () {
+                        $('#' + tableId).html('<p>Error loading data.</p>');
+                    }
+                });
+            }
+
+            loadTable('/api/Drugs/all', 'drugsTable');
+            loadTable('/api/Comments/all', 'commentsTable', true, true);
+            loadTable('/api/Document/all', 'documentsTable');
+            loadTable('/api/Rating/all', 'ratingsTable', true);
+            loadTable('/api/Users/all', 'usersTable');
+            loadTable('/api/Messages/all', 'messagesTable');
+
+            // Handle delete rating
+            $(document).on('click', '.delete-rating', function () {
+                var ratingId = $(this).data('id');
+                $.ajax({
+                    url: '/api/Rating/' + ratingId,
+                    method: 'DELETE',
+                    success: function () {
+                        alert('Rating deleted successfully.');
+                        loadTable('/api/Rating/all', 'ratingsTable', true);
+                    },
+                    error: function () {
+                        alert('Error deleting rating.');
+                    }
+                });
+            });
+
+            // Handle delete comment
+            $(document).on('click', '.delete-comment', function () {
+                var commentId = $(this).data('id');
+                $.ajax({
+                    url: '/api/Comments/' + commentId,
+                    method: 'DELETE',
+                    success: function () {
+                        alert('Comment deleted successfully.');
+                        loadTable('/api/Comments/all', 'commentsTable', true, true);
+                    },
+                    error: function () {
+                        alert('Error deleting comment.');
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

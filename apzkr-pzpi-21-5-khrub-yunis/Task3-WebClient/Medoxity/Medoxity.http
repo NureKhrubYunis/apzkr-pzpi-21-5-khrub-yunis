@@ -1,0 +1,6 @@
+@Medoxity_HostAddress = http://localhost:5138
+
+GET {{Medoxity_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

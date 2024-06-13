@@ -1,0 +1,90 @@
+﻿@page
+@model Medoxity.Pages.ProfileModel
+@{
+    Layout = "_Layout";
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Profile</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+
+        .profile-container {
+            margin-top: 50px;
+        }
+
+        .profile-card {
+            padding: 20px;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            background-color: #ffffff;
+        }
+
+        .logout-button {
+            background-color: #dc3545;
+            border: none;
+        }
+
+            .logout-button:hover {
+                background-color: #c82333;
+            }
+    </style>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <div class="container profile-container">
+        <h1 class="text-center mb-4">User Profile</h1>
+        <div id="profile" class="profile-card">
+            <p>Loading...</p>
+        </div>
+        <button id="logoutButton" class="btn btn-danger logout-button mt-3">Logout</button>
+    </div>
+
+    <script>
+        $(document).ready(function () {
+            // Fetch user profile
+            $.ajax({
+                url: '/api/Users/me',
+                method: 'GET',
+                contentType: 'application/json',
+                success: function (user) {
+                    var profileHtml = `
+                                <p><strong>Username:</strong> ${user.username}</p>
+                                <p><strong>Name:</strong> ${user.name}</p>
+                                <p><strong>Email:</strong> ${user.email}</p>
+                                <p><strong>Type:</strong> ${user.type}</p>
+                                <p><strong>Registration Date:</strong> ${new Date(user.registrationDate).toLocaleDateString()}</p>
+                                <p><strong>Role:</strong> ${user.role}</p>
+                            `;
+                    $('#profile').html(profileHtml);
+                },
+                error: function (response) {
+                    $('#profile').html('<p>Error loading profile: ' + response.responseJSON.message + '</p>');
+                }
+            });
+
+            // Handle logout button click
+            $('#logoutButton').click(function () {
+                $.ajax({
+                    url: '/api/Access/logout',
+                    method: 'POST',
+                    contentType: 'application/json',
+                    success: function (response) {
+                        alert('Logged out successfully.');
+                        window.location.href = "/Login";
+                    },
+                    error: function (response) {
+                        alert('Error logging out: ' + response.responseJSON.message);
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

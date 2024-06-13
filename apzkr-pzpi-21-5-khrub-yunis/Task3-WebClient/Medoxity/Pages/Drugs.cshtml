@@ -1,0 +1,81 @@
+﻿@page
+@model Medoxity.Pages.DrugsModel
+@{
+    Layout = "_Layout";
+    ViewData["Title"] = "Drugs";
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>@ViewData["Title"]</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+
+        .drug-card {
+            margin-bottom: 20px;
+        }
+
+            .drug-card .card-title {
+                color: #007bff;
+            }
+
+            .drug-card .card-text {
+                font-size: 0.9em;
+                color: #6c757d;
+            }
+
+            .drug-card .btn-primary {
+                background-color: #007bff;
+                border: none;
+            }
+
+                .drug-card .btn-primary:hover {
+                    background-color: #0056b3;
+                }
+    </style>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1 class="my-4 text-center">Drugs</h1>
+        <div class="row" id="drugsList">
+            <p class="text-center">Loading...</p>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function () {
+            $.ajax({
+                url: '/api/drugs/all',
+                method: 'GET',
+                contentType: 'application/json',
+                success: function (drugs) {
+                    var drugsHtml = '';
+                    drugs.forEach(function (drug) {
+                        drugsHtml += `
+                                            <div class="col-md-4">
+                                                <div class="card drug-card shadow-sm">
+                                                    <div class="card-body">
+                                                        <h5 class="card-title">${drug.drugName}</h5>
+                                                        <p class="card-text">${drug.description}</p>
+                                                        <a href="/Drug?DrugID=${drug.drugID}" class="btn btn-primary">View Details</a>
+                                                    </div>
+                                                </div>
+                                            </div>`;
+                    });
+
+                    $('#drugsList').html(drugsHtml);
+                },
+                error: function () {
+                    $('#drugsList').html('<p class="text-center text-danger">Error loading drugs list.</p>');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

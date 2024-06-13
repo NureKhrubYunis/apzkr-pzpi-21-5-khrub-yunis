@@ -1,0 +1,129 @@
+﻿@page
+@model Medoxity.Pages.DocumentModel
+@{
+    Layout = "_Layout";
+    ViewData["Title"] = "User Documents";
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>@ViewData["Title"]</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <style>
+        body {
+            background-color: #f4f4f9;
+            color: #333;
+            font-family: 'Arial', sans-serif;
+        }
+
+        .container {
+            margin-top: 30px;
+        }
+
+        .document-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            background: linear-gradient(135deg, #e0e0e0, #ffffff);
+        }
+
+        h1, h2 {
+            color: #333;
+        }
+
+        .table-responsive {
+            margin-top: 20px;
+        }
+
+        .table {
+            width: 100%;
+            margin-bottom: 1rem;
+            color: #212529;
+        }
+
+            .table th,
+            .table td {
+                padding: 0.75rem;
+                vertical-align: top;
+                border-top: 1px solid #dee2e6;
+            }
+
+            .table thead th {
+                vertical-align: bottom;
+                border-bottom: 2px solid #dee2e6;
+            }
+
+            .table tbody + tbody {
+                border-top: 2px solid #dee2e6;
+            }
+
+        .table-hover tbody tr:hover {
+            color: #212529;
+            background-color: rgba(0, 0, 0, 0.075);
+        }
+
+        .btn-primary {
+            background-color: #007bff;
+            border: none;
+        }
+
+            .btn-primary:hover {
+                background-color: #0056b3;
+            }
+    </style>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1 class="my-4 text-center">@ViewData["Title"]</h1>
+
+        <div class="document-section">
+            <h2>User Documents</h2>
+            <div id="documentsTable" class="table-responsive">
+                <p>Loading...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function () {
+            function loadUserDocuments() {
+                $.ajax({
+                    url: '/api/Document/user-documents',
+                    method: 'GET',
+                    contentType: 'application/json',
+                    success: function (documents) {
+                        if (documents.length === 0) {
+                            $('#documentsTable').html('<p>No documents available.</p>');
+                        } else {
+                            var tableHtml = '<table class="table table-hover"><thead><tr>';
+                            tableHtml += '<th>Document ID</th><th>Username</th><th>Document Name</th><th>Document Type</th><th>Document Path</th><th>Upload Date</th>';
+                            tableHtml += '</tr></thead><tbody>';
+                            documents.forEach(function (document) {
+                                tableHtml += '<tr>';
+                                tableHtml += '<td>' + document.documentID + '</td>';
+                                tableHtml += '<td>' + document.username + '</td>';
+                                tableHtml += '<td>' + document.documentName + '</td>';
+                                tableHtml += '<td>' + document.documentType + '</td>';
+                                tableHtml += '<td>' + document.documentPath + '</td>';
+                                tableHtml += '<td>' + new Date(document.uploadDate).toLocaleDateString() + '</td>';
+                                tableHtml += '</tr>';
+                            });
+                            tableHtml += '</tbody></table>';
+                            $('#documentsTable').html(tableHtml);
+                        }
+                    },
+                    error: function () {
+                        $('#documentsTable').html('<p>Error loading documents.</p>');
+                    }
+                });
+            }
+
+            loadUserDocuments();
+        });
+    </script>
+</body>
+</html>

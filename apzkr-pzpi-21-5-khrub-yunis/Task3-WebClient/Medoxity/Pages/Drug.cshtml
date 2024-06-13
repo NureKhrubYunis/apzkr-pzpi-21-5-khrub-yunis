@@ -1,0 +1,335 @@
+﻿@page
+@model Medoxity.Pages.DrugModel
+@{
+    Layout = "_Layout";
+    ViewData["Title"] = "Drug Details";
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>@ViewData["Title"]</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <style>
+        body {
+            background-color: #f4f4f9;
+            color: #333;
+            font-family: 'Arial', sans-serif;
+        }
+
+        .container {
+            margin-top: 30px;
+        }
+
+        .drug-details, .rating-section, .comments-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .drug-details {
+            background: linear-gradient(135deg, #ece9e6, #ffffff);
+        }
+
+        .rating-section {
+            background: linear-gradient(135deg, #ffecd2, #fcb69f);
+        }
+
+        .comments-section {
+            background: linear-gradient(135deg, #e0c3fc, #8ec5fc);
+        }
+
+            .drug-details:hover, .rating-section:hover, .comments-section:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+            }
+
+        .btn-primary {
+            background-color: #007bff;
+            border: none;
+        }
+
+            .btn-primary:hover {
+                background-color: #0056b3;
+            }
+
+        .card {
+            margin-top: 10px;
+        }
+
+        .list-group-item {
+            border: none;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+            .list-group-item:last-child {
+                border-bottom: none;
+            }
+
+        .comments-section form {
+            background-color: #ffffff;
+            padding: 15px;
+            border-radius: 5px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+            .comments-section form .form-group {
+                margin-bottom: 15px;
+            }
+
+        h1, h2 {
+            color: #333;
+        }
+
+        .rating-section h2, .comments-section h2 {
+            color: #555;
+        }
+    </style>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <div class="text-right mb-3">
+            <select id="languageSelector" class="form-control" style="width: 150px; display: inline-block;">
+                <option value="en">English</option>
+                <option value="uk">Українська</option>
+            </select>
+        </div>
+        <h1 class="my-4 text-center" data-i18n="title">Drug Details</h1>
+
+        <div id="drugDetails" class="drug-details">
+            <p data-i18n="loading">Loading...</p>
+        </div>
+
+        <div class="rating-section">
+            <h2 data-i18n="rating">Rating</h2>
+            <div id="ratingSection">
+                <p data-i18n="loading">Loading rating...</p>
+            </div>
+            <form id="addRatingForm" style="display: none;">
+                <div class="form-group">
+                    <label for="ratingValue" data-i18n="add_rating">Add Rating:</label>
+                    <select class="form-control" id="ratingValue" required>
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4">4</option>
+                        <option value="5">5</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary" data-i18n="add_rating">Add Rating</button>
+            </form>
+        </div>
+
+        <div class="comments-section">
+            <h2 data-i18n="comments">Comments</h2>
+            <div id="commentsSection">
+                <p data-i18n="loading">Loading comments...</p>
+            </div>
+            <form id="addCommentForm">
+                <div class="form-group">
+                    <label for="commentText" data-i18n="add_comment">Add Comment:</label>
+                    <textarea class="form-control" id="commentText" rows="3" required data-i18n="[placeholder]comment_text"></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary" data-i18n="add_comment">Add Comment</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const translations = {
+            en: {
+                "title": "Drug Details",
+                "loading": "Loading...",
+                "rating": "Rating",
+                "comments": "Comments",
+                "add_comment": "Add Comment",
+                "comment_text": "Comment text",
+                "add_rating": "Add Rating",
+                "description": "Description",
+                "manufacturer": "Manufacturer",
+                "price": "Price",
+                "stock_quantity": "Stock Quantity",
+                "release_date": "Release Date",
+                "your_rating": "Your rating",
+                "no_rating": "No rating yet. Add your rating below:"
+            },
+            uk: {
+                "title": "Деталі препарату",
+                "loading": "Завантаження...",
+                "rating": "Рейтинг",
+                "comments": "Коментарі",
+                "add_comment": "Додати коментар",
+                "comment_text": "Текст коментаря",
+                "add_rating": "Додати рейтинг",
+                "description": "Опис",
+                "manufacturer": "Виробник",
+                "price": "Ціна",
+                "stock_quantity": "Кількість на складі",
+                "release_date": "Дата випуску",
+                "your_rating": "Ваш рейтинг",
+                "no_rating": "Рейтингу ще немає. Додайте свій рейтинг нижче:"
+            }
+        };
+
+        function setLanguage(language) {
+            $('[data-i18n]').each(function () {
+                var key = $(this).data('i18n');
+                $(this).text(translations[language][key]);
+            });
+
+            $('[data-i18n-placeholder]').each(function () {
+                var key = $(this).data('i18n-placeholder');
+                $(this).attr('placeholder', translations[language][key]);
+            });
+        }
+
+        $(document).ready(function () {
+            $('#languageSelector').change(function () {
+                var selectedLanguage = $(this).val();
+                setLanguage(selectedLanguage);
+                loadContent(selectedLanguage);
+            });
+
+            var urlParams = new URLSearchParams(window.location.search);
+            var drugID = urlParams.get('DrugID');
+
+            function loadContent(language) {
+                if (drugID) {
+                    // Fetch drug details
+                    $.ajax({
+                        url: '/api/Drugs/drugs/' + drugID,
+                        method: 'GET',
+                        contentType: 'application/json',
+                        success: function (drug) {
+                            var drugHtml = `
+                                                <h3>${drug.drugName}</h3>
+                                                <p><strong>${translations[language]['description']}:</strong> ${drug.description}</p>
+                                                <p><strong>${translations[language]['manufacturer']}:</strong> ${drug.manufacturer}</p>
+                                                <p><strong>${translations[language]['price']}:</strong> $${drug.price.toFixed(2)}</p>
+                                                <p><strong>${translations[language]['stock_quantity']}:</strong> ${drug.stockQuantity}</p>
+                                                <p><strong>${translations[language]['release_date']}:</strong> ${new Date(drug.releaseDate).toLocaleDateString()}</p>
+                                            `;
+                            $('#drugDetails').html(drugHtml);
+                        },
+                        error: function () {
+                            $('#drugDetails').html('<p data-i18n="loading">Error loading drug details.</p>');
+                        }
+                    });
+
+                    // Fetch rating
+                    $.ajax({
+                        url: '/api/Rating/check-rating/' + drugID,
+                        method: 'GET',
+                        contentType: 'application/json',
+                        success: function (rating) {
+                            console.log('Rating data:', rating); 
+                            if (rating && rating.value) {
+                                $('#ratingSection').html(`<p>${translations[language]['your_rating']}: ${rating.value}</p>`);
+                            } else if (rating.message === "Rating not found.") {
+                                $('#ratingSection').html(`<p>${translations[language]['no_rating']}</p>`);
+                                $('#addRatingForm').show();
+                            } else {
+                                $('#ratingSection').html('<p data-i18n="loading">Error loading rating.</p>');
+                            }
+                        },
+                        error: function (xhr) {
+                            console.error('Error loading rating:', xhr.responseText); 
+                            $('#ratingSection').html('<p data-i18n="loading">Error loading rating.</p>');
+                        }
+                    });
+
+                    // Add rating
+                    $('#addRatingForm').submit(function (event) {
+                        event.preventDefault();
+                        var ratingValue = $('#ratingValue').val();
+
+                        $.ajax({
+                            url: '/api/Rating/rate',
+                            method: 'POST',
+                            contentType: 'application/json',
+                            data: JSON.stringify({ DrugID: drugID, Value: ratingValue }),
+                            success: function (response) {
+                                alert(response.message);
+                                $('#addRatingForm').hide();
+                                $('#ratingSection').html(`<p>${translations[language]['your_rating']}: ${ratingValue}</p>`);
+                            },
+                            error: function (xhr) {
+                                if (xhr.responseJSON && xhr.responseJSON.message) {
+                                    alert('Error: ' + xhr.responseJSON.message);
+                                } else {
+                                    alert('Error adding rating.');
+                                }
+                            }
+                        });
+                    });
+
+                    // Add comment
+                    $('#addCommentForm').submit(function (event) {
+                        event.preventDefault();
+                        var commentText = $('#commentText').val();
+
+                        $.ajax({
+                            url: '/api/Comments/comment',
+                            method: 'POST',
+                            contentType: 'application/json',
+                            data: JSON.stringify({ drugID: drugID, text: commentText }),
+                            success: function (response) {
+                                alert(response.message);
+                                $('#commentText').val(''); // Clear the textarea after adding the comment
+                                loadComments(language); // Reload comments to show the new one
+                            },
+                            error: function (xhr) {
+                                if (xhr.responseJSON && xhr.responseJSON.message) {
+                                    alert('Error: ' + xhr.responseJSON.message);
+                                } else {
+                                    alert('Error adding comment.');
+                                }
+                            }
+                        });
+                    });
+                } else {
+                    $('#drugDetails').html('<p data-i18n="loading">Invalid drug ID.</p>');
+                    $('#commentsSection').html('');
+                }
+
+                // Fetch comments
+                function loadComments(language) {
+                    $.ajax({
+                        url: '/api/Comments/comments/drug/' + drugID,
+                        method: 'GET',
+                        contentType: 'application/json',
+                        success: function (comments) {
+                            if (comments.length === 0) {
+                                $('#commentsSection').html('<p data-i18n="loading">No comments available for this drug.</p>');
+                            } else {
+                                var commentsHtml = '<ul class="list-group">';
+                                comments.forEach(function (comment) {
+                                    commentsHtml += `
+                                                        <li class="list-group-item">
+                                                            <p><strong>${comment.username}</strong> <small>${new Date(comment.commentDate).toLocaleDateString()}</small></p>
+                                                            <p>${comment.text}</p>
+                                                        </li>`;
+                                });
+                                commentsHtml += '</ul>';
+                                $('#commentsSection').html(commentsHtml);
+                            }
+                        },
+                        error: function () {
+                            $('#commentsSection').html('<p data-i18n="loading">Error loading comments.</p>');
+                        }
+                    });
+                }
+                loadComments(language);
+            }
+
+            // Set default language on page load
+            setLanguage('en');
+            loadContent('en');
+        });
+    </script>
+</body>
+</html>
